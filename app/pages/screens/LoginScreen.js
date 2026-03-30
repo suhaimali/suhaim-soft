@@ -11,45 +11,68 @@ import {
   TouchableWithoutFeedback,
   View,
   Keyboard,
+  Dimensions,
+  StatusBar,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Picker } from '@react-native-picker/picker';
-import { Eye, EyeOff, Lock, Stethoscope, User } from 'lucide-react-native';
+import { 
+  Eye, EyeOff, Lock, Stethoscope, User, 
+  ArrowRight, ShieldCheck, Briefcase, 
+  UserPlus, ChevronDown, Check
+} from 'lucide-react-native';
 import { ROLE_OPTIONS, ROLE_ROUTES, validateRoleLogin } from '../../auth/roleAuth';
 import SplashScreen from '../../components/loaders/SplashScreen';
-import modernTheme from '../../constants/modernTheme';
 
-/**
- * Root login: username, password, role picker.
- * On success uses navigation.replace(routeName) so the user cannot go "back" to login.
- */
+const { width, height } = Dimensions.get('window');
+
 export default function LoginScreen() {
   const navigation = useNavigation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState(ROLE_ROUTES.DOCTOR);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showSplash, setShowSplash] = useState(true);
+  const [focusedInput, setFocusedInput] = useState(null);
+
   useEffect(() => {
-    // Show splash for 2.5s, then hide
-    const timer = setTimeout(() => setShowSplash(false), 2500);
+    const timer = setTimeout(() => setShowSplash(false), 2000);
     return () => clearTimeout(timer);
   }, []);
+
+  const getRolePlaceholder = () => {
+    switch(selectedRole) {
+      case ROLE_ROUTES.DOCTOR: return "Dr. Username";
+      case ROLE_ROUTES.ADMIN: return "System Administrator ID";
+      case ROLE_ROUTES.NURSE: return "Nurse Username";
+      case ROLE_ROUTES.PATIENT: return "Patient Username";
+      case ROLE_ROUTES.LAB: return "Lab Username ";
+      case ROLE_ROUTES.PHARMACY: return "Pharmacy Username";
+      default: return "Enter your username";
+    }
+  };
+
+  const getRoleIcon = (value, color, size = 20) => {
+    const props = { size, color };
+    switch(value) {
+      case 'DOCTOR': return <Stethoscope {...props} />;
+      case 'ADMIN': return <ShieldCheck {...props} />;
+      case 'STAFF': return <UserPlus {...props} />;
+      default: return <Briefcase {...props} />;
+    }
+  };
 
   const handleLogin = async () => {
     setError('');
     if (!username.trim() || !password) {
-      setError('Please enter username and password.');
+      setError('Please fill in all fields');
       return;
     }
-
     setLoading(true);
-    // Short delay so loading state is visible (matches real auth UX)
-    await new Promise((r) => setTimeout(r, 400));
-
+    await new Promise((r) => setTimeout(r, 1000));
     const result = validateRoleLogin(username, password, selectedRole);
     setLoading(false);
 
@@ -57,110 +80,137 @@ export default function LoginScreen() {
       setError(result.message);
       return;
     }
-
-    // replace() removes Login from the stack — prevents Android back to login
     navigation.replace(result.routeName);
   };
 
   if (showSplash) {
-    return <SplashScreen theme={{ mode: 'dark', primary: modernTheme.colors.primary, text: '#fff', textDim: '#94a3b8' }} onFinish={() => setShowSplash(false)} />;
+    return <SplashScreen theme={{ mode: 'light', primary: '#6366f1', text: '#1e293b', textDim: '#94a3b8' }} onFinish={() => setShowSplash(false)} />;
   }
 
+  const currentRoleObj = ROLE_OPTIONS.find(opt => opt.value === selectedRole);
+
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+    <TouchableWithoutFeedback onPress={() => { Keyboard.dismiss(); setIsDropdownOpen(false); }}>
       <View style={styles.root}>
-        <LinearGradient colors={['#0f172a', '#134e4a', '#0f172a']} style={StyleSheet.absoluteFill} />
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.flex}
-        >
-          <ScrollView
-            contentContainerStyle={styles.scroll}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.brandRow}>
-              <View style={styles.brandIcon}>
-                <Stethoscope size={36} color="#2dd4bf" />
-              </View>
-              <Text style={styles.brandTitle}>Clinic PPM</Text>
-              <Text style={styles.brandSub}>Hospital & clinic workspace</Text>
+        <StatusBar barStyle="dark-content" />
+        
+        {/* Abstract Background */}
+        <View style={[styles.aura, { backgroundColor: '#818cf8', top: -150, left: -100, opacity: 0.15 }]} />
+        <View style={[styles.aura, { backgroundColor: '#c084fc', bottom: -100, right: -100, opacity: 0.1 }]} />
+
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.flex}>
+          <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+            
+            <View style={styles.header}>
+              <LinearGradient colors={['#6366f1', '#a855f7']} style={styles.logoIcon}>
+                <Stethoscope size={38} color="#fff" />
+              </LinearGradient>
+              <Text style={styles.brandText}>Suhaim<Text style={{color: '#6366f1'}}>Soft</Text></Text>
+              <Text style={styles.subTitle}>Healthcare Intelligence Portal</Text>
             </View>
 
-            <View style={styles.card}>
-              <Text style={styles.label}>Username</Text>
-              <View style={styles.inputWrap}>
-                <User size={20} color="#64748b" />
-                <TextInput
-                  style={styles.input}
-                  placeholder="e.g. doctor"
-                  placeholderTextColor="#64748b"
-                  value={username}
-                  onChangeText={setUsername}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  editable={!loading}
-                />
-              </View>
-
-              <Text style={styles.label}>Password</Text>
-              <View style={styles.inputWrap}>
-                <Lock size={20} color="#64748b" />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Password"
-                  placeholderTextColor="#64748b"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
-                  editable={!loading}
-                />
-                <TouchableOpacity onPress={() => setShowPassword((s) => !s)} hitSlop={12}>
-                  {showPassword ? <EyeOff size={20} color="#64748b" /> : <Eye size={20} color="#64748b" />}
+            <View style={styles.mainCard}>
+              
+              {/* CUSTOM ROLE DROPDOWN */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Access Role</Text>
+                <TouchableOpacity 
+                  activeOpacity={1} 
+                  onPress={() => setIsDropdownOpen(!isDropdownOpen)}
+                  style={[styles.dropdownHeader, isDropdownOpen && styles.dropdownHeaderActive]}
+                >
+                  <View style={styles.roleInfo}>
+                    <View style={styles.roleIconWrapper}>
+                       {getRoleIcon(selectedRole, '#6366f1')}
+                    </View>
+                    <Text style={styles.selectedRoleText}>{currentRoleObj?.label}</Text>
+                  </View>
+                  <ChevronDown size={20} color="#94a3b8" style={{ transform: [{ rotate: isDropdownOpen ? '180deg' : '0deg' }] }} />
                 </TouchableOpacity>
+
+                {isDropdownOpen && (
+                  <View style={styles.dropdownMenu}>
+                    {ROLE_OPTIONS.map((item) => (
+                      <TouchableOpacity 
+                        key={item.value} 
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          setSelectedRole(item.value);
+                          setIsDropdownOpen(false);
+                        }}
+                      >
+                        <View style={styles.roleInfo}>
+                          {getRoleIcon(item.value, selectedRole === item.value ? '#6366f1' : '#94a3b8', 18)}
+                          <Text style={[styles.itemText, selectedRole === item.value && styles.itemTextActive]}>
+                            {item.label}
+                          </Text>
+                        </View>
+                        {selectedRole === item.value && <Check size={16} color="#6366f1" strokeWidth={3} />}
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
               </View>
 
-              <Text style={styles.label}>Role</Text>
-              <View style={styles.pickerWrap}>
-                <Picker
-                  selectedValue={selectedRole}
-                  onValueChange={(v) => setSelectedRole(v)}
-                  enabled={!loading}
-                  style={styles.picker}
-                  itemStyle={Platform.OS === 'ios' ? styles.pickerItemIos : undefined}
-                >
-                  {ROLE_OPTIONS.map((opt) => (
-                    <Picker.Item key={opt.value} label={opt.label} value={opt.value} />
-                  ))}
-                </Picker>
-              </View>
+              {/* FORM SECTION */}
+              {!isDropdownOpen && (
+                <View style={styles.formSection}>
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Username</Text>
+                    <View style={[styles.inputField, focusedInput === 'user' && styles.inputFieldFocused]}>
+                      <User size={20} color={focusedInput === 'user' ? '#6366f1' : '#94a3b8'} />
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder={getRolePlaceholder()}
+                        placeholderTextColor="#cbd5e1"
+                        value={username}
+                        onChangeText={setUsername}
+                        onFocus={() => setFocusedInput('user')}
+                        onBlur={() => setFocusedInput(null)}
+                        autoCapitalize="none"
+                      />
+                    </View>
+                  </View>
 
-              {error ? <Text style={styles.error}>{error}</Text> : null}
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Password</Text>
+                    <View style={[styles.inputField, focusedInput === 'pass' && styles.inputFieldFocused]}>
+                      <Lock size={20} color={focusedInput === 'pass' ? '#6366f1' : '#94a3b8'} />
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder="••••••••"
+                        placeholderTextColor="#cbd5e1"
+                        secureTextEntry={!showPassword}
+                        value={password}
+                        onChangeText={setPassword}
+                        onFocus={() => setFocusedInput('pass')}
+                        onBlur={() => setFocusedInput(null)}
+                      />
+                      <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                        {showPassword ? <EyeOff size={20} color="#94a3b8" /> : <Eye size={20} color="#6366f1" />}
+                      </TouchableOpacity>
+                    </View>
+                  </View>
 
-              <TouchableOpacity
-                style={[styles.loginBtn, loading && styles.loginBtnDisabled]}
-                onPress={handleLogin}
-                disabled={loading}
-                activeOpacity={0.9}
-              >
-                <LinearGradient
-                  colors={['#14b8a6', '#0d9488']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.loginGradient}
-                >
-                  {loading ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text style={styles.loginText}>Sign in</Text>
-                  )}
-                </LinearGradient>
-              </TouchableOpacity>
+                  {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-              <Text style={styles.hint}>
-                Demo: role-specific username and password 1234 (see roleAuth.js).
-              </Text>
+                  <TouchableOpacity onPress={handleLogin} disabled={loading} activeOpacity={0.8} style={styles.loginBtnWrapper}>
+                    <LinearGradient colors={['#6366f1', '#a855f7']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.loginBtn}>
+                      {loading ? (
+                        <ActivityIndicator color="#fff" />
+                      ) : (
+                        <View style={styles.btnContent}>
+                          <Text style={styles.btnText}>Login Securely</Text>
+                          <ArrowRight size={20} color="#fff" strokeWidth={2.5} />
+                        </View>
+                      )}
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
+
+            <Text style={styles.footerNote}>Enterprise-grade Security Verified</Text>
           </ScrollView>
         </KeyboardAvoidingView>
       </View>
@@ -169,83 +219,65 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0f172a' },
+  root: { flex: 1, backgroundColor: '#f8fafc' },
   flex: { flex: 1 },
-  scroll: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 24,
-    paddingVertical: 48,
-  },
-  brandRow: { alignItems: 'center', marginBottom: 28 },
-  brandIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: 20,
-    backgroundColor: 'rgba(45,212,191,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(45,212,191,0.35)',
-    marginBottom: 14,
-  },
-  brandTitle: { fontSize: 28, fontWeight: '800', color: '#f1f5f9' },
-  brandSub: { marginTop: 6, fontSize: 15, color: '#94a3b8' },
-  card: {
-    backgroundColor: 'rgba(30,41,59,0.92)',
-    borderRadius: 20,
-    padding: 22,
-    borderWidth: 1,
-    borderColor: 'rgba(148,163,184,0.2)',
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#94a3b8',
-    marginBottom: 8,
-    marginTop: 4,
-  },
-  inputWrap: {
+  aura: { position: 'absolute', width: width * 1.5, height: width * 1.5, borderRadius: width },
+  scroll: { flexGrow: 1, paddingHorizontal: 24, paddingVertical: 60, justifyContent: 'center' },
+  header: { alignItems: 'center', marginBottom: 40 },
+  logoIcon: { width: 75, height: 75, borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginBottom: 15, elevation: 10, shadowColor: '#6366f1', shadowOpacity: 0.3, shadowRadius: 15 },
+  brandText: { fontSize: 34, fontWeight: '900', color: '#0f172a' },
+  subTitle: { fontSize: 14, color: '#64748b', fontWeight: '600', marginTop: 4 },
+  mainCard: { backgroundColor: '#fff', borderRadius: 32, padding: 20, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 24, elevation: 8 },
+  inputGroup: { marginBottom: 20 },
+  inputLabel: { fontSize: 13, fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: 8, marginLeft: 4, letterSpacing: 0.5 },
+  
+  // DROPDOWN STYLES
+  dropdownHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(15,23,42,0.6)',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(148,163,184,0.25)',
-    paddingHorizontal: 14,
-    marginBottom: 14,
-    minHeight: 52,
+    justifyContent: 'space-between',
+    backgroundColor: '#f8fafc',
+    height: 64,
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
   },
-  input: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 16,
-    color: '#f1f5f9',
-    paddingVertical: Platform.OS === 'ios' ? 12 : 8,
+  dropdownHeaderActive: { borderColor: '#6366f1', backgroundColor: '#fff' },
+  roleInfo: { flexDirection: 'row', alignItems: 'center' },
+  roleIconWrapper: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#eef2ff', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  selectedRoleText: { fontSize: 16, fontWeight: '700', color: '#1e293b' },
+  dropdownMenu: {
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    marginTop: 8,
+    padding: 8,
+    borderWidth: 1.5,
+    borderColor: '#f1f5f9',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 5,
   },
-  pickerWrap: {
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(148,163,184,0.25)',
-    backgroundColor: 'rgba(15,23,42,0.6)',
-    marginBottom: 14,
-    overflow: 'hidden',
-  },
-  picker: { color: '#f1f5f9' },
-  pickerItemIos: { color: '#f1f5f9' },
-  error: {
-    color: '#fca5a5',
-    fontSize: 14,
-    marginBottom: 10,
-    fontWeight: '500',
-  },
-  loginBtn: { borderRadius: 14, overflow: 'hidden', marginTop: 8 },
-  loginBtnDisabled: { opacity: 0.85 },
-  loginGradient: {
-    paddingVertical: 16,
+  dropdownItem: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    padding: 14,
+    borderRadius: 12,
   },
-  loginText: { color: '#fff', fontSize: 17, fontWeight: '700' },
-  hint: { marginTop: 16, fontSize: 12, color: '#64748b', textAlign: 'center', lineHeight: 18 },
+  itemText: { fontSize: 15, fontWeight: '600', color: '#64748b', marginLeft: 12 },
+  itemTextActive: { color: '#6366f1', fontWeight: '700' },
+
+  // FORM STYLES
+  formSection: { marginTop: 5 },
+  inputField: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', borderRadius: 18, paddingHorizontal: 16, height: 60, borderWidth: 1.5, borderColor: '#f1f5f9' },
+  inputFieldFocused: { borderColor: '#6366f1', backgroundColor: '#fff' },
+  textInput: { flex: 1, marginLeft: 12, fontSize: 16, color: '#0f172a', fontWeight: '600' },
+  errorText: { color: '#ef4444', fontSize: 13, fontWeight: '700', textAlign: 'center', marginVertical: 10 },
+  loginBtnWrapper: { marginTop: 20, borderRadius: 20, overflow: 'hidden' },
+  loginBtn: { height: 64, justifyContent: 'center', alignItems: 'center' },
+  btnContent: { flexDirection: 'row', alignItems: 'center' },
+  btnText: { color: '#fff', fontSize: 18, fontWeight: '800', marginRight: 10 },
+  footerNote: { textAlign: 'center', color: '#cbd5e1', fontSize: 12, fontWeight: '700', marginTop: 30, textTransform: 'uppercase', letterSpacing: 1 }
 });
