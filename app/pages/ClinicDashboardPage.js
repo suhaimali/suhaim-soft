@@ -3130,9 +3130,9 @@ const MainApp = ({ skipLogin = false, onLogoutExternal }) => {
                 styles={styles}
             />
 
-            {isLoading && <SplashScreen theme={theme} onFinish={() => setIsLoading(false)} />}
+            {/* SplashScreen removed as per request */}
             {!isLoading && !isLoggedIn && <LoginPage onLogin={handleLogin} theme={theme} layout={layout} showToast={showToast} styles={styles} />}
-            {!isLoading && isLoggedIn && (
+            {isLoggedIn && (
                 <>
                     <View style={[styles.glowTop, { backgroundColor: theme.glowTop }]} />
                     <View style={[styles.glowBottom, { backgroundColor: theme.glowBottom }]} />
