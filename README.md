@@ -1,112 +1,189 @@
-# Welcome to Suhaim Soft Emr Managmnet Systen 👋
+# 🏥 Suhaim Soft EMR Management System
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A full-stack Electronic Medical Records (EMR) system built using Expo (React Native) and MongoDB. This application allows clinics to manage patients, appointments, medicines, and procedures efficiently.
 
-## Get started
+---
 
-1. Install dependencies
+## 🚀 Features
 
-   ```bash
-   npm install
-   ```
+* 📋 Patient Management
+* 📅 Appointment Scheduling
+* 💊 Medicine Tracking
+* 🧾 Procedure Templates
+* 🔄 Real-time Data Sync with MongoDB
+* 📱 Mobile App using Expo
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## 🛠️ Tech Stack
 
-3. Start the MongoDB API in a second terminal
+* Frontend: Expo (React Native)
+* Backend: Node.js + Express
+* Database: MongoDB
+* API: RESTful services
 
-   ```bash
-   npm run server
-   ```
+---
 
-4. Make sure MongoDB is running locally, or set `MONGODB_URI` in `.env`
+## 📂 Project Structure
 
-   ```bash
-   MONGODB_URI=mongodb://127.0.0.1:27017/clinicppm
-   ```
-   5. Start Expo (BEST FIXED COMMAND ✅)
-npx expo start --tunnel -c
-
-👉 --tunnel → Works on any network / real phone
-👉 -c → Clears cache (fixes most bugs)
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Project structure
-
-```text
-clinicppm.site/
-   app/
-      _layout.js        # Expo Router stack layout
-      index.js          # Home route wrapper
-      app.js            # Secondary route wrapper
-      pages/
-         ClinicDashboardPage.js
-      components/
-         commons/        # Reusable UI primitives and shared widgets
-         navbars/        # Top bars, bottom bars, drawer bars
-         loaders/        # Splash screens, activity states, skeleton loaders
-   assets/
-      images/
-   scripts/
-      reset-project.js
+```
+emr-system/
+│
+├── app/
+│   ├── pages/              # Main screens
+│   ├── components/         # Reusable UI components
+│   ├── navbars/            # Navigation UI
+│   └── loaders/            # Loading screens
+│
+├── server/                 # Backend API
+├── assets/                 # Images and static files
+├── .env                    # Environment variables
+└── package.json
 ```
 
-Use these folders for future updates:
+---
 
-- Put full route-level screens and page implementations in **app/pages**.
-- Put shared widgets and small reusable UI in **app/components/commons**.
-- Put any navigation UI in **app/components/navbars**.
-- Put loading, splash, and empty-state loading components in **app/components/loaders**.
-- Keep the system grouped under **app** so future updates follow one consistent structure.
+## ⚙️ Installation & Setup
 
-## MongoDB integration
-
-The project now includes a MongoDB-backed API under **server/**.
-
-- `GET /api/health` checks API and database connectivity.
-- `GET /api/state` returns the clinic data used by the Expo app.
-- `PUT /api/state/:collection` persists one collection at a time (`appointments`, `patients`, `medicines`, `templates`, `procedures`).
-- `POST /api/state/reset` restores the seeded demo dataset.
-
-Environment variables live in `.env` and can be copied from `.env.example`.
-
-- `MONGODB_URI` points the Node API to MongoDB.
-- `PORT` changes the API port.
-- `EXPO_PUBLIC_API_BASE_URL` overrides the client API base URL for physical devices or remote servers.
-
-If you run Expo on a real phone, set `EXPO_PUBLIC_API_BASE_URL` to your machine's LAN IP, for example `http://192.168.1.20:4000/api`.
-
-## Get a fresh project
-
-When you're ready, run:
+### 1️⃣ Clone the repository
 
 ```bash
-npm run reset-project
+git clone <your-repo-url>
+cd emr-system
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+### 2️⃣ Install dependencies
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+npm install
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+---
 
-## Join the community
+### 3️⃣ Setup environment variables
 
-Join our community of developers creating universal apps.
+Create a `.env` file in the root directory:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```env
+MONGODB_URI=mongodb://127.0.0.1:27017/clinicppm
+PORT=4000
+EXPO_PUBLIC_API_BASE_URL=http://192.168.X.X:4000/api
+```
+
+> ⚠️ Replace `192.168.X.X` with your computer's local IP address
+
+---
+
+### 4️⃣ Start MongoDB
+
+Make sure MongoDB is running locally:
+
+```bash
+mongod
+```
+
+---
+
+### 5️⃣ Start backend server
+
+```bash
+npm run server
+```
+
+Expected output:
+
+```
+Server running on port 4000
+MongoDB connected
+```
+
+---
+
+### 6️⃣ Start Expo app
+
+```bash
+npx expo start --tunnel -c
+```
+
+---
+
+### 7️⃣ Run on mobile
+
+* Install Expo Go app
+* Scan the QR code
+* App will open on your device
+
+---
+
+## 🧪 API Endpoints
+
+* `GET /api/health` → Check API status
+* `GET /api/state` → Get all clinic data
+* `PUT /api/state/:collection` → Update collection
+* `POST /api/state/reset` → Reset demo data
+
+---
+
+## ❗ Common Issues & Fixes
+
+### 🔴 App shows "Something went wrong"
+
+✔ Fix:
+
+* Run backend server
+* Use correct IP instead of `localhost`
+* Clear cache:
+
+```bash
+npx expo start -c
+```
+
+---
+
+### 🔴 Network Error
+
+✔ Fix:
+
+* Ensure phone & PC are on same network
+* Use:
+
+```bash
+npx expo start --tunnel
+```
+
+---
+
+### 🔴 MongoDB Connection Error
+
+✔ Fix:
+
+* Start MongoDB
+* Check `MONGODB_URI`
+
+---
+
+## 📌 Development Notes
+
+* Use `app/pages` for screens
+* Use `app/components` for reusable UI
+* Keep code modular and clean
+
+---
+
+## 📄 License
+
+This project is for educational and development purposes.
+
+---
+
+## 👨‍💻 Author
+
+Developed by Suhaim Soft
+
+---
+
+## ⭐ Support
+
+If you find this project helpful, consider giving it a star ⭐
