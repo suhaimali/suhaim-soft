@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, ScrollView, StyleSheet, Dimensions } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BLOOD_GROUPS } from '../../constants/medical';
 import { getMedicalModalTheme } from '../../constants/tableTheme';
@@ -17,25 +18,23 @@ export default function BloodGroupBookingModal({ visible, onClose, onBook, theme
           <LinearGradient colors={modalTheme.headerColors} style={styles.header}>
             <Text style={[styles.headerText, { color: modalTheme.headerText }]}>Book Blood Group</Text>
           </LinearGradient>
-          <ScrollView contentContainerStyle={styles.scroll}>
-            {BLOOD_GROUPS.map((bg) => (
-              <TouchableOpacity
-                key={bg}
-                style={[
-                  styles.bloodOption,
-                  selected === bg && { backgroundColor: modalTheme.chipBg, borderColor: theme.primary }
-                ]}
-                onPress={() => setSelected(bg)}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.bloodText, { color: selected === bg ? theme.primary : theme.text }]}>{bg}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-          <View style={styles.actions}>
-            <TouchableOpacity style={[styles.btn, { backgroundColor: theme.inputBg }]} onPress={onClose}>
-              <Text style={{ color: theme.text }}>Cancel</Text>
-            </TouchableOpacity>
+          <View style={styles.dropdownContainer}>
+            <Picker
+              selectedValue={selected}
+              onValueChange={(itemValue) => setSelected(itemValue)}
+              style={[
+                styles.picker,
+                { color: theme.text, backgroundColor: theme.inputBg, borderColor: theme.primary }
+              ]}
+              dropdownIconColor={theme.primary}
+            >
+              <Picker.Item label="Select Blood Group" value={null} color="#888" />
+              {BLOOD_GROUPS.map((bg) => (
+                <Picker.Item key={bg.value} label={bg.label} value={bg.value} color={theme.text} />
+              ))}
+            </Picker>
+          </View>
+          <View style={styles.actionsSingle}>
             <TouchableOpacity
               style={[styles.btn, { backgroundColor: theme.primary }]}
               onPress={() => selected && onBook(selected)}
@@ -80,33 +79,26 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     textAlign: 'center',
   },
-  scroll: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    padding: 16,
-  },
-  bloodOption: {
-    minWidth: 80,
-    margin: 8,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    backgroundColor: '#f0fdfa',
+  dropdownContainer: {
+    width: '100%',
+    padding: 20,
+    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 2,
   },
-  bloodText: {
-    fontSize: 20,
-    fontWeight: '700',
-    letterSpacing: 1,
+  picker: {
+    width: '100%',
+    height: 56,
+    borderRadius: 14,
+    borderWidth: 2,
+    fontSize: 18,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#f0fdfa',
   },
-  actions: {
+  actionsSingle: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     padding: 16,
     borderTopWidth: 1,
     borderColor: '#e0f2fe',
